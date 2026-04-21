@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 import re
 
 
@@ -9,7 +9,7 @@ class GestionInventario:
     """
     
     def __init__(self) -> None:
-        self.inventario: Dict[str, Dict[str, float | int]] = {}
+        self.inventario: Dict[str, Dict[str, Union[float, int]]] = {}
     
     def agregar_producto(self, nombre: str, precio: float, stock: int) -> None:
         """
@@ -20,8 +20,11 @@ class GestionInventario:
         :param stock: Stock inicial (>= 0)
         :raises ValueError: Si parámetros inválidos
         """
-        if not nombre or not re.match(r'^[a-zA-Z0-9\s\-\_\.]+$', nombre):
-            raise ValueError("Nombre debe ser no vacío y solo alfanuméricos, espacios, -, _, .")
+        nombre = nombre.strip()
+        if not nombre or not re.match(r"^[a-zA-ZÁÉÍÓÚÑÜ \-\_\.]+$", nombre):
+            raise ValueError("Nombre debe ser no vacío y solo caracteres alfanuméricos válidos (incluye acentos)")
+        precio = float(precio)
+        stock = int(stock)
         if precio <= 0:
             raise ValueError("Precio debe ser mayor a 0")
         if stock < 0:
@@ -59,14 +62,28 @@ class GestionInventario:
         
         self.inventario[nombre]['stock'] = nuevo_stock
     
-    def buscar_producto(self, nombre: str) -> Optional[Dict[str, float | int]]:
+    def buscar_producto(self, nombre: str) -> Optional[Dict[str, Union[float, int]]]:
         """
         Busca un producto por nombre exacto.
         
         :param nombre: Nombre del producto
         :return: Dict del producto o None si no encontrado
         """
+        nombre = nombre.strip()
         return self.inventario.get(nombre)
+
+    def buscar_productos(self, patron: str) -> List[Tuple[str, Dict[str, Union[float, int]]]]:
+        """
+        Busca productos por patrón (coincidencia parcial, case-insensitive).
+        
+        :param patron: Patrón de búsqueda
+        :return: Lista de (nombre, info) que coincidan
+        """
+        if not patron:
+            return []
+        patron_lower = patron.lower().strip()
+        return [(n, info) for n, info in self.inventario.items() 
+                if patron_lower in n.lower()]
     
     def listar_productos(self) -> List[Tuple[str, float, int]]:
         """
