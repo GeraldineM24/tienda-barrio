@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  tienda-barrio:
+    build: .
+    container_name: tienda_barrio_app
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    environment:
+      - PYTHONPATH=/app
